@@ -53,6 +53,7 @@ struct BindingEnv : public Env {
                             Env* env);
 
 private:
+  friend struct ManifestWriter;
   map<string, string> bindings_;
   Env* parent_;
 };
@@ -73,6 +74,7 @@ struct EvalString {
   string Serialize() const;
 
 private:
+  friend struct ManifestWriter;
   enum TokenType { RAW, SPECIAL };
   typedef vector<pair<string, TokenType> > TokenList;
   TokenList parsed_;

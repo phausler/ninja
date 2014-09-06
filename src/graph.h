@@ -130,6 +130,7 @@ struct Rule {
  private:
   // Allow the parsers to reach into this object and fill out its fields.
   friend struct ManifestParser;
+  friend struct ManifestWriter;
 
   string name_;
   map<string, EvalString> bindings_;
