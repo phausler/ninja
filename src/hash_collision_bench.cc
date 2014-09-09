@@ -19,6 +19,8 @@ using namespace std;
 
 #include <time.h>
 
+using namespace ninja;
+
 int random(int low, int high) {
   return int(low + (rand() / double(RAND_MAX)) * (high - low) + 0.5);
 }

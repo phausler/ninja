@@ -36,6 +36,8 @@
 #include "state.h"
 #include "util.h"
 
+using namespace ninja;
+
 struct RealFileReader : public ManifestParser::FileReader {
   virtual bool ReadFile(const string& path, string* content, string* err) {
     return ::ReadFile(path, content, err) == 0;
