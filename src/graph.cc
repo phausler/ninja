@@ -46,6 +46,11 @@ const EvalString* Rule::GetBinding(const string& key) const {
   return &i->second;
 }
 
+map<string, EvalString> Rule::GetBindings() const {
+  map<string, EvalString> bindings(bindings_);
+  return bindings;
+}
+
 // static
 bool Rule::IsReservedBinding(const string& var) {
   return var == "command" ||

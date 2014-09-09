@@ -126,6 +126,7 @@ struct Rule {
   static bool IsReservedBinding(const string& var);
 
   const EvalString* GetBinding(const string& key) const;
+  map<string, EvalString> GetBindings() const;
 
  private:
   // Allow the parsers to reach into this object and fill out its fields.
