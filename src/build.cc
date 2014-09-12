@@ -69,7 +69,7 @@ bool DryRunCommandRunner::WaitForCommand(Result* result) {
    return true;
 }
 
-BuildStatus::BuildStatus(const BuildConfig& config)
+ConsoleBuildStatus::ConsoleBuildStatus(const BuildConfig& config)
     : config_(config),
       start_time_millis_(GetTimeMillis()),
       started_edges_(0), finished_edges_(0), total_edges_(0),
@@ -85,11 +85,11 @@ BuildStatus::BuildStatus(const BuildConfig& config)
     progress_status_format_ = "[%s/%t] ";
 }
 
-void BuildStatus::PlanHasTotalEdges(int total) {
+void ConsoleBuildStatus::PlanHasTotalEdges(int total) {
   total_edges_ = total;
 }
 
-void BuildStatus::BuildEdgeStarted(Edge* edge) {
+void ConsoleBuildStatus::BuildEdgeStarted(Edge* edge) {
   int start_time = (int)(GetTimeMillis() - start_time_millis_);
   running_edges_.insert(make_pair(edge, start_time));
   ++started_edges_;
@@ -100,7 +100,7 @@ void BuildStatus::BuildEdgeStarted(Edge* edge) {
     printer_.SetConsoleLocked(true);
 }
 
-void BuildStatus::BuildEdgeFinished(Edge* edge,
+void ConsoleBuildStatus::BuildEdgeFinished(Edge* edge,
                                     bool success,
                                     const string& output,
                                     int* start_time,
@@ -148,12 +148,12 @@ void BuildStatus::BuildEdgeFinished(Edge* edge,
   }
 }
 
-void BuildStatus::BuildFinished() {
+void ConsoleBuildStatus::BuildFinished() {
   printer_.SetConsoleLocked(false);
   printer_.PrintOnNewLine("");
 }
 
-string BuildStatus::FormatProgressStatus(
+string ConsoleBuildStatus::FormatProgressStatus(
     const char* progress_status_format) const {
   string out;
   char buf[32];
@@ -236,7 +236,7 @@ string BuildStatus::FormatProgressStatus(
   return out;
 }
 
-void BuildStatus::PrintStatus(Edge* edge) {
+void ConsoleBuildStatus::PrintStatus(Edge* edge) {
   if (config_.verbosity == BuildConfig::QUIET)
     return;
 
@@ -522,10 +522,11 @@ bool RealCommandRunner::WaitForCommand(Result* result) {
 
 Builder::Builder(State* state, const BuildConfig& config,
                  BuildLog* build_log, DepsLog* deps_log,
-                 DiskInterface* disk_interface)
-    : state_(state), config_(config), disk_interface_(disk_interface),
+                 DiskInterface* disk_interface,
+                 BuildStatus *status)
+    : state_(state), config_(config), status_(status),
+      disk_interface_(disk_interface),
       scan_(state, build_log, deps_log, disk_interface) {
-  status_ = new BuildStatus(config);
 }
 
 Builder::~Builder() {

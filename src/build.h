@@ -145,7 +145,8 @@ struct BuildConfig {
 struct Builder {
   Builder(State* state, const BuildConfig& config,
           BuildLog* build_log, DepsLog* deps_log,
-          DiskInterface* disk_interface);
+          DiskInterface* disk_interface,
+          BuildStatus *status);
   ~Builder();
 
   /// Clean up after interrupted commands by deleting output files.
@@ -194,9 +195,18 @@ struct Builder {
   void operator=(const Builder &other); // DO NOT IMPLEMENT
 };
 
-/// Tracks the status of a build: completion fraction, printing updates.
+
 struct BuildStatus {
-  explicit BuildStatus(const BuildConfig& config);
+  virtual void PlanHasTotalEdges(int total) = 0;
+  virtual void BuildEdgeStarted(Edge* edge) = 0;
+  virtual void BuildEdgeFinished(Edge* edge, bool success, const string& output,
+                         int* start_time, int* end_time) = 0;
+  virtual void BuildFinished() = 0;
+};
+
+/// Tracks the status of a build: completion fraction, printing updates.
+struct ConsoleBuildStatus : public BuildStatus {
+  explicit ConsoleBuildStatus(const BuildConfig& config);
   void PlanHasTotalEdges(int total);
   void BuildEdgeStarted(Edge* edge);
   void BuildEdgeFinished(Edge* edge, bool success, const string& output,

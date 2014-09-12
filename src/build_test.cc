@@ -431,7 +431,8 @@ struct FakeCommandRunner : public CommandRunner {
 
 struct BuildTest : public StateTestWithBuiltinRules, public BuildLogUser {
   BuildTest() : config_(MakeConfig()), command_runner_(&fs_),
-                builder_(&state_, config_, NULL, NULL, &fs_),
+                status_(config),
+                builder_(&state_, config_, NULL, NULL, &fs_, &status_),
                 status_(config_) {
   }
 
@@ -471,6 +472,7 @@ struct BuildTest : public StateTestWithBuiltinRules, public BuildLogUser {
   }
 
   BuildConfig config_;
+  ConsoleBuildStatus status_;
   FakeCommandRunner command_runner_;
   VirtualFileSystem fs_;
   Builder builder_;
@@ -501,7 +503,7 @@ void BuildTest::RebuildTarget(const string& target, const char* manifest,
     pdeps_log = &deps_log;
   }
 
-  Builder builder(&state, config_, pbuild_log, pdeps_log, &fs_);
+  Builder builder(&state, config_, pbuild_log, pdeps_log, &fs_, &status_);
   EXPECT_TRUE(builder.AddTarget(target, &err));
 
   command_runner_.commands_ran_.clear();
@@ -1569,6 +1571,7 @@ TEST_F(BuildWithDepsLogTest, Straightforward) {
       "  depfile = in1.d\n";
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1577,7 +1580,7 @@ TEST_F(BuildWithDepsLogTest, Straightforward) {
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
     ASSERT_EQ("", err);
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     EXPECT_TRUE(builder.AddTarget("out", &err));
     ASSERT_EQ("", err);
@@ -1595,6 +1598,7 @@ TEST_F(BuildWithDepsLogTest, Straightforward) {
 
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1607,7 +1611,7 @@ TEST_F(BuildWithDepsLogTest, Straightforward) {
     ASSERT_TRUE(deps_log.Load("ninja_deps", &state, &err));
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     command_runner_.commands_ran_.clear();
     EXPECT_TRUE(builder.AddTarget("out", &err));
@@ -1640,6 +1644,7 @@ TEST_F(BuildWithDepsLogTest, ObsoleteDeps) {
     fs_.Create("in1.d", "out: ");
 
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1648,7 +1653,7 @@ TEST_F(BuildWithDepsLogTest, ObsoleteDeps) {
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
     ASSERT_EQ("", err);
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     EXPECT_TRUE(builder.AddTarget("out", &err));
     ASSERT_EQ("", err);
@@ -1670,6 +1675,7 @@ TEST_F(BuildWithDepsLogTest, ObsoleteDeps) {
 
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1677,7 +1683,7 @@ TEST_F(BuildWithDepsLogTest, ObsoleteDeps) {
     ASSERT_TRUE(deps_log.Load("ninja_deps", &state, &err));
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     command_runner_.commands_ran_.clear();
     EXPECT_TRUE(builder.AddTarget("out", &err));
@@ -1708,12 +1714,13 @@ TEST_F(BuildWithDepsLogTest, DepsIgnoredInDryRun) {
   fs_.Create("in1", "");
 
   State state;
+  ConsoleBuildStatus status(config_);
   ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
   ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
   // The deps log is NULL in dry runs.
   config_.dry_run = true;
-  Builder builder(&state, config_, NULL, NULL, &fs_);
+  Builder builder(&state, config_, NULL, NULL, &fs_, &status);
   builder.command_runner_.reset(&command_runner_);
   command_runner_.commands_ran_.clear();
 
@@ -1763,6 +1770,7 @@ TEST_F(BuildWithDepsLogTest, RestatDepfileDependencyDepsLog) {
       "  depfile = in1.d\n";
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1771,7 +1779,7 @@ TEST_F(BuildWithDepsLogTest, RestatDepfileDependencyDepsLog) {
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
     ASSERT_EQ("", err);
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     EXPECT_TRUE(builder.AddTarget("out", &err));
     ASSERT_EQ("", err);
@@ -1785,6 +1793,7 @@ TEST_F(BuildWithDepsLogTest, RestatDepfileDependencyDepsLog) {
 
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AddCatRule(&state));
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
@@ -1797,7 +1806,7 @@ TEST_F(BuildWithDepsLogTest, RestatDepfileDependencyDepsLog) {
     ASSERT_TRUE(deps_log.Load("ninja_deps", &state, &err));
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     command_runner_.commands_ran_.clear();
     EXPECT_TRUE(builder.AddTarget("out", &err));
@@ -1823,6 +1832,7 @@ TEST_F(BuildWithDepsLogTest, DepFileOKDepsLog) {
 
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
     // Run the build once, everything should be ok.
@@ -1830,7 +1840,7 @@ TEST_F(BuildWithDepsLogTest, DepFileOKDepsLog) {
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
     ASSERT_EQ("", err);
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
     EXPECT_TRUE(builder.AddTarget("fo o.o", &err));
     ASSERT_EQ("", err);
@@ -1844,6 +1854,7 @@ TEST_F(BuildWithDepsLogTest, DepFileOKDepsLog) {
 
   {
     State state;
+    ConsoleBuildStatus status(config_);
     ASSERT_NO_FATAL_FAILURE(AssertParse(&state, manifest));
 
     DepsLog deps_log;
@@ -1851,7 +1862,7 @@ TEST_F(BuildWithDepsLogTest, DepFileOKDepsLog) {
     ASSERT_TRUE(deps_log.OpenForWrite("ninja_deps", &err));
     ASSERT_EQ("", err);
 
-    Builder builder(&state, config_, NULL, &deps_log, &fs_);
+    Builder builder(&state, config_, NULL, &deps_log, &fs_, &status);
     builder.command_runner_.reset(&command_runner_);
 
     Edge* edge = state.edges_.back();

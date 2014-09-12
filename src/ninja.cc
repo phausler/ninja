@@ -235,8 +235,9 @@ bool NinjaMain::RebuildManifest(const char* input_file, string* err) {
   Node* node = state_.LookupNode(path);
   if (!node)
     return false;
-
-  Builder builder(&state_, config_, &build_log_, &deps_log_, &disk_interface_);
+  
+  ConsoleBuildStatus status(config_);
+  Builder builder(&state_, config_, &build_log_, &deps_log_, &disk_interface_, &status);
   if (!builder.AddTarget(node, err))
     return false;
 
@@ -892,8 +893,9 @@ int NinjaMain::RunBuild(int argc, char** argv) {
   }
 
   disk_interface_.AllowStatCache(g_experimental_statcache);
+  ConsoleBuildStatus status(config_);
 
-  Builder builder(&state_, config_, &build_log_, &deps_log_, &disk_interface_);
+  Builder builder(&state_, config_, &build_log_, &deps_log_, &disk_interface_, &status);
   for (size_t i = 0; i < targets.size(); ++i) {
     if (!builder.AddTarget(targets[i], &err)) {
       if (!err.empty()) {
