@@ -399,6 +399,6 @@ bool ManifestParser::ExpectToken(Lexer::Token expected, string* err) {
   return true;
 }
 
-string ManifestParser::GetBuildDirectory() {
+string ManifestParser::GetBuildDirectory() const {
   return ::dirname((char *)path_.c_str());
 }

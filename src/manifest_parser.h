@@ -44,6 +44,8 @@ struct ManifestParser {
     return Parse("input", input, err);
   }
 
+  string GetBuildDirectory() const;
+
 private:
   /// Parse a file, given its contents as a string.
   bool Parse(const string& filename, const string& input, string* err);
@@ -61,8 +63,6 @@ private:
   /// If the next token is not \a expected, produce an error string
   /// saying "expectd foo, got bar".
   bool ExpectToken(Lexer::Token expected, string* err);
-
-  string GetBuildDirectory();
 
   State* state_;
   BindingEnv* env_;
