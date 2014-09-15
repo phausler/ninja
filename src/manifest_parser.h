@@ -62,6 +62,8 @@ private:
   /// saying "expectd foo, got bar".
   bool ExpectToken(Lexer::Token expected, string* err);
 
+  string GetBuildDirectory();
+
   State* state_;
   BindingEnv* env_;
   FileReader* file_reader_;

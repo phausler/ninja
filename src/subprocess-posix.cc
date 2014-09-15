@@ -27,8 +27,8 @@
 
 using namespace ninja;
 
-Subprocess::Subprocess(bool use_console) : fd_(-1), pid_(-1),
-                                           use_console_(use_console) {
+Subprocess::Subprocess(bool use_console, string working_dir) : 
+  fd_(-1), pid_(-1), use_console_(use_console), working_dir_(working_dir) {
 }
 Subprocess::~Subprocess() {
   if (fd_ >= 0)
@@ -61,6 +61,9 @@ bool Subprocess::Start(SubprocessSet* set, const string& command) {
     // Track which fd we use to report errors on.
     int error_pipe = output_pipe[1];
     do {
+      if (chdir(working_dir_.c_str()) < 0)
+        break;
+
       if (sigaction(SIGINT, &set->old_act_, 0) < 0)
         break;
       if (sigprocmask(SIG_SETMASK, &set->old_mask_, 0) < 0)
@@ -176,8 +179,8 @@ SubprocessSet::~SubprocessSet() {
     Fatal("sigprocmask: %s", strerror(errno));
 }
 
-Subprocess *SubprocessSet::Add(const string& command, bool use_console) {
-  Subprocess *subprocess = new Subprocess(use_console);
+Subprocess *SubprocessSet::Add(const string& command, string working_dir, bool use_console) {
+  Subprocess *subprocess = new Subprocess(use_console, working_dir);
   if (!subprocess->Start(this, command)) {
     delete subprocess;
     return 0;

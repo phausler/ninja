@@ -493,7 +493,8 @@ bool RealCommandRunner::CanRunMore() {
 
 bool RealCommandRunner::StartCommand(Edge* edge) {
   string command = edge->EvaluateCommand();
-  Subprocess* subproc = subprocs_.Add(command, edge->use_console());
+  string working_dir = edge->GetWorkingDirectory();
+  Subprocess* subproc = subprocs_.Add(command, working_dir, edge->use_console());
   if (!subproc)
     return false;
   subproc_to_edge_.insert(make_pair(subproc, edge));

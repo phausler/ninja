@@ -287,6 +287,11 @@ string Edge::EvaluateCommand(bool incl_rsp_file) {
   return command;
 }
 
+string Edge::GetWorkingDirectory() {
+  EdgeEnv env(this, EdgeEnv::kDoNotEscape);
+  return env.LookupVariable("working_directory");
+}
+
 string Edge::GetBinding(const string& key) {
   EdgeEnv env(this, EdgeEnv::kShellEscape);
   return env.LookupVariable(key);

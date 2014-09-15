@@ -37,7 +37,7 @@ bool ManifestParser::Load(const string& filename, string* err, Lexer* parent) {
   string contents;
   string read_err;
   if (parent_ != NULL) {
-    string path = ::dirname((char *)parent_->path_.c_str());
+    string path = parent_->GetBuildDirectory();
     path += "/" + filename;
     path_ = path;
   } else {
@@ -307,17 +307,24 @@ bool ManifestParser::ParseEdge(string* err) {
   if (!ExpectToken(Lexer::NEWLINE, err))
     return false;
 
-  // Bindings on edges are rare, so allocate per-edge envs only when needed.
   bool hasIdent = lexer_.PeekToken(Lexer::INDENT);
-  BindingEnv* env = hasIdent ? new BindingEnv(env_) : env_;
+  BindingEnv* env = new BindingEnv(env_);
+  bool hasWorkingDir = false;
   while (hasIdent) {
     string key;
     EvalString val;
     if (!ParseLet(&key, &val, err))
       return false;
 
+    if (key == "working_directory")
+      hasWorkingDir = true;
+
     env->AddBinding(key, val.Evaluate(env_));
     hasIdent = lexer_.PeekToken(Lexer::INDENT);
+  }
+
+  if (!hasWorkingDir) {
+    env->AddBinding("working_directory", GetBuildDirectory());
   }
 
   Edge* edge = state_->AddEdge(rule);
@@ -390,4 +397,8 @@ bool ManifestParser::ExpectToken(Lexer::Token expected, string* err) {
     return lexer_.Error(message, err);
   }
   return true;
+}
+
+string ManifestParser::GetBuildDirectory() {
+  return ::dirname((char *)path_.c_str());
 }

@@ -21,9 +21,9 @@
 
 #include "util.h"
 
-Subprocess::Subprocess(bool use_console) : child_(NULL) , overlapped_(),
-                                           is_reading_(false),
-                                           use_console_(use_console) {
+Subprocess::Subprocess(bool use_console, string working_dir) :
+  child_(NULL) , overlapped_(), is_reading_(false),
+  use_console_(use_console), working_dir_(working_dir) {
 }
 
 Subprocess::~Subprocess() {
@@ -108,7 +108,7 @@ bool Subprocess::Start(SubprocessSet* set, const string& command) {
   // lines greater than 8,191 chars.
   if (!CreateProcessA(NULL, (char*)command.c_str(), NULL, NULL,
                       /* inherit handles */ TRUE, process_flags,
-                      NULL, NULL,
+                      (char*)working_dir_.c_str(), NULL,
                       &startup_info, &process_info)) {
     DWORD error = GetLastError();
     if (error == ERROR_FILE_NOT_FOUND) {
@@ -223,8 +223,8 @@ BOOL WINAPI SubprocessSet::NotifyInterrupted(DWORD dwCtrlType) {
   return FALSE;
 }
 
-Subprocess *SubprocessSet::Add(const string& command, bool use_console) {
-  Subprocess *subprocess = new Subprocess(use_console);
+Subprocess *SubprocessSet::Add(const string& command, string working_dir, bool use_console) {
+  Subprocess *subprocess = new Subprocess(use_console, working_dir);
   if (!subprocess->Start(this, command)) {
     delete subprocess;
     return 0;
