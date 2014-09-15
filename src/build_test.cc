@@ -430,10 +430,9 @@ struct FakeCommandRunner : public CommandRunner {
 };
 
 struct BuildTest : public StateTestWithBuiltinRules, public BuildLogUser {
-  BuildTest() : config_(MakeConfig()), command_runner_(&fs_),
-                status_(config),
-                builder_(&state_, config_, NULL, NULL, &fs_, &status_),
-                status_(config_) {
+  BuildTest() : config_(MakeConfig()), status_(config_),
+                command_runner_(&fs_),
+                builder_(&state_, config_, NULL, NULL, &fs_, &status_) {
   }
 
   virtual void SetUp() {
@@ -476,8 +475,6 @@ struct BuildTest : public StateTestWithBuiltinRules, public BuildLogUser {
   FakeCommandRunner command_runner_;
   VirtualFileSystem fs_;
   Builder builder_;
-
-  BuildStatus status_;
 };
 
 void BuildTest::RebuildTarget(const string& target, const char* manifest,
@@ -1092,7 +1089,8 @@ TEST_F(BuildWithLogTest, RestatTest) {
   ASSERT_EQ("", err);
   EXPECT_TRUE(builder_.Build(&err));
   ASSERT_EQ("", err);
-  EXPECT_EQ("[3/3]", builder_.status_->FormatProgressStatus("[%s/%t]"));
+  ConsoleBuildStatus *status = (ConsoleBuildStatus *)builder_.status_;
+  EXPECT_EQ("[3/3]", status->FormatProgressStatus("[%s/%t]"));
   command_runner_.commands_ran_.clear();
   state_.Reset();
 

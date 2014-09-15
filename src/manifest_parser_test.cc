@@ -22,6 +22,8 @@
 #include "graph.h"
 #include "state.h"
 
+using namespace ninja;
+
 struct ParserTest : public testing::Test,
                     public ManifestParser::FileReader {
   void AssertParse(const char* input) {

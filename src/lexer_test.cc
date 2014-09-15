@@ -18,6 +18,8 @@
 
 #include "eval_env.h"
 
+using namespace ninja;
+
 TEST(Lexer, ReadVarValue) {
   Lexer lexer("plain text $var $VaR ${x}\n");
   EvalString eval;

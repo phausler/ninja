@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace ninja;
+
 struct DepfileParserTest : public testing::Test {
   bool Parse(const char* input, string* err);
 

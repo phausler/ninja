@@ -18,6 +18,8 @@
 #include "gtest/gtest.h"
 #include "line_printer.h"
 
+using namespace ninja;
+
 string StringPrintf(const char* format, ...) {
   const int N = 1024;
   char buf[N];
