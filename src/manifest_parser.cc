@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <libgen.h>
 
 #include "graph.h"
 #include "metrics.h"
@@ -26,8 +27,8 @@
 
 using namespace ninja;
 
-ManifestParser::ManifestParser(State* state, FileReader* file_reader)
-  : state_(state), file_reader_(file_reader) {
+ManifestParser::ManifestParser(State* state, FileReader* file_reader, ManifestParser *parent)
+  : state_(state), file_reader_(file_reader), parent_(parent) {
   env_ = &state->bindings_;
 }
 
@@ -35,7 +36,15 @@ bool ManifestParser::Load(const string& filename, string* err, Lexer* parent) {
   METRIC_RECORD(".ninja parse");
   string contents;
   string read_err;
-  if (!file_reader_->ReadFile(filename, &contents, &read_err)) {
+  if (parent_ != NULL) {
+    string path = ::dirname((char *)parent_->path_.c_str());
+    path += "/" + filename;
+    path_ = path;
+  } else {
+    path_ = filename;
+  }
+  
+  if (!file_reader_->ReadFile(path_, &contents, &read_err)) {
     *err = "loading '" + filename + "': " + read_err;
     if (parent)
       parent->Error(string(*err), err);
@@ -356,7 +365,7 @@ bool ManifestParser::ParseFileInclude(bool new_scope, string* err) {
     return false;
   string path = eval.Evaluate(env_);
 
-  ManifestParser subparser(state_, file_reader_);
+  ManifestParser subparser(state_, file_reader_, this);
   if (new_scope) {
     subparser.env_ = new BindingEnv(env_);
   } else {
