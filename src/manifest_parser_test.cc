@@ -743,7 +743,7 @@ TEST_F(ParserTest, MultipleOutputsWithDeps) {
 }
 
 TEST_F(ParserTest, SubNinja) {
-  files_["test.ninja"] =
+  files_["./test.ninja"] =
     "var = inner\n"
     "build $builddir/inner: varref\n";
   ASSERT_NO_FATAL_FAILURE(AssertParse(
@@ -756,7 +756,7 @@ TEST_F(ParserTest, SubNinja) {
 "build $builddir/outer2: varref\n"));
   ASSERT_EQ(1u, files_read_.size());
 
-  EXPECT_EQ("test.ninja", files_read_[0]);
+  EXPECT_EQ("./test.ninja", files_read_[0]);
   EXPECT_TRUE(state.LookupNode("some_dir/outer"));
   // Verify our builddir setting is inherited.
   EXPECT_TRUE(state.LookupNode("some_dir/inner"));
@@ -779,7 +779,7 @@ TEST_F(ParserTest, MissingSubNinja) {
 
 TEST_F(ParserTest, DuplicateRuleInDifferentSubninjas) {
   // Test that rules live in a global namespace and aren't scoped to subninjas.
-  files_["test.ninja"] = "rule cat\n"
+  files_["./test.ninja"] = "rule cat\n"
                          "  command = cat\n";
   ManifestParser parser(&state, this);
   string err;
@@ -793,18 +793,18 @@ TEST_F(ParserTest, DuplicateRuleInDifferentSubninjas) {
 }
 
 TEST_F(ParserTest, Include) {
-  files_["include.ninja"] = "var = inner\n";
+  files_["./include.ninja"] = "var = inner\n";
   ASSERT_NO_FATAL_FAILURE(AssertParse(
 "var = outer\n"
 "include include.ninja\n"));
 
   ASSERT_EQ(1u, files_read_.size());
-  EXPECT_EQ("include.ninja", files_read_[0]);
+  EXPECT_EQ("./include.ninja", files_read_[0]);
   EXPECT_EQ("inner", state.bindings_.LookupVariable("var"));
 }
 
 TEST_F(ParserTest, BrokenInclude) {
-  files_["include.ninja"] = "build\n";
+  files_["./include.ninja"] = "build\n";
   ManifestParser parser(&state, this);
   string err;
   EXPECT_FALSE(parser.ParseTest("include include.ninja\n", &err));
