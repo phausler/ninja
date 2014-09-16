@@ -42,7 +42,7 @@ DepsLog::~DepsLog() {
   Close();
 }
 
-bool DepsLog::OpenForWrite(const string& path, string* err) {
+bool DepsLog::OpenForWrite(string path, string* err) {
   if (needs_recompaction_) {
     if (!Recompact(path, err))
       return false;
@@ -163,7 +163,7 @@ void DepsLog::Close() {
   file_ = NULL;
 }
 
-bool DepsLog::Load(const string& path, State* state, string* err) {
+bool DepsLog::Load(string path, State* state, string* err) {
   METRIC_RECORD(".ninja_deps load");
   char buf[kMaxRecordSize + 1];
   FILE* f = fopen(path.c_str(), "rb");
