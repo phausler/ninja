@@ -400,5 +400,7 @@ bool ManifestParser::ExpectToken(Lexer::Token expected, string* err) {
 }
 
 string ManifestParser::GetBuildDirectory() const {
-  return ::dirname((char *)path_.c_str());
+  char path[PATH_MAX];
+  strcpy(path, path_.c_str());
+  return ::dirname(path);
 }
